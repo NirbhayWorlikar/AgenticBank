@@ -1,0 +1,94 @@
+
+Proof of Concept (PoC) Idea
+====================================
+
+1. Title of the PoC
+-------------------
+AgenticChatbot: AI-Powered Banking Assistant using LangGraph and Bedrock
+
+2. Problem Statement
+--------------------
+Manual handling of banking queries (e.g., card replacement, fraud reporting, transfers) is inefficient and inconsistent across support channels.
+Retail banking customers often face long wait times, unclear instructions, and inconsistent answers when interacting with human agents or traditional chatbots. 
+There is no personalized, safe, and structured way to resolve queries in real-time.
+
+3. Proposed Solution
+--------------------
+An AI-powered agentic chatbot using LangGraph with Claude Sonnet v3.5 on AWS Bedrock to simulate a multi-agent system:
+- A Planner extracts the intent and required slots.
+- A Reviewer ensures plan safety, completeness, and compliance.
+- An Executioner performs real-time task simulation.
+- A Response Generator provides a final, user-friendly response.
+All steps are tracked, logged, and curated into session-wise logs for traceability.
+
+4. Key Features / Capabilities
+------------------------------
+- Intent & slot extraction from customer queries via Claude Sonnet
+- Planner → Reviewer → Executioner → Response Generator architecture
+- Structured plan generation & safety review with scoring
+- Local session-based centralized logging
+- Clarification loop for missing information
+- Basic chatbot frontend using React
+- JSON-based internal agent communication using LangGraph
+
+Sample Intents for PoC:
+| Intent         | Required Slots                                |
+|----------------|-----------------------------------------------|
+| card_replace   | card_type, delivery_address, reason           |
+| report_fraud   | transaction_id, fraud_type, user_confirmation |
+| open_account   | account_type, customer_name, id_proof         |
+| check_balance  | account_number, auth_token                    |
+| transfer_money | sender_account, receiver_account, amount      |
+
+5. Tech Stack / Tools
+---------------------
+| Component         | Tool/Framework                     |
+|-------------------|------------------------------------|
+| LLM               | Claude Sonnet v3.5 via Bedrock     |
+| LangGraph         | LangGraph-AWS                      |
+| Backend           | FastAPI                            |
+| Frontend          | React                              |
+| Logging           | Local file-based session logging   |
+| Storage           | Local file system (for PoC)        |
+| Vector DB         | *(Optional in future, not in PoC)* |
+
+6. Expected Outcomes
+--------------------
+The PoC will:
+- Demonstrate the end-to-end flow for at least 2 banking intents.
+- Show JSON-based communication between all agents.
+- Log all major/minor actions session-wise in a local folder.
+- Allow real users to interact via a basic chatbot UI.
+- Achieve >80% intent detection accuracy and >70% task completeness in test cases.
+
+7. Research & Exploration Tasks for AI
+--------------------------------------
+- Build LangGraph chain with nodes for Planner, Reviewer, Executioner, and Response Generator
+- Design prompt templates for:
+  - Intent detection
+  - Slot filling
+  - Plan generation and reviews
+- Set up FastAPI backend with LangGraph integration
+- Implement a simple React chatbot interface
+- Create 5 sample banking queries and test scenarios
+- Build local file-based logging mechanism with session identifiers
+
+8. Constraints / Assumptions
+----------------------------
+- LLM latency (Claude v3.5) may introduce small delays
+- Logging is local only (not persisted in cloud or database)
+- No actual banking APIs will be called; execution is simulated
+- Only English-language queries supported
+- User is assumed to answer clarification questions promptly
+
+9. Next Steps
+-------------
+1. Design agent roles in LangGraph and define input/output schemas
+2. Define prompt templates and map to intents/slots
+3. Implement planner logic with fallback for slot fulfillment
+4. Implement reviewer logic with scoring
+5. Stub executioner actions and return mock responses
+6. Build FastAPI interface to host the LangGraph pipeline
+7. Create React chatbot frontend to interact with FastAPI backend
+8. Write session-wise logging utility
+9. Test with sample queries and refine the flow
