@@ -13,10 +13,36 @@ class Responder:
     def _clarify_prompt(self, intent: IntentName, missing_slots: List[str]) -> str:
         readable = ", ".join(missing_slots)
         human_intent = intent.value.replace("_", " ")
-        return (
-            f"I can help with {human_intent}. To proceed, please provide: {readable}. "
-            "Reply in a short sentence including these details."
-        )
+
+        empathetic_templates = {
+            IntentName.card_replace: (
+                "I'm sorry to hear about your card. I'll help you get a replacement right away. "
+                f"To proceed, could you please share: {readable}?"
+            ),
+            IntentName.report_fraud: (
+                "That sounds stressful, and your security matters. I'll help you report this. "
+                f"Please provide: {readable}."
+            ),
+            IntentName.open_account: (
+                "Happy to help you open an account. We'll make this quick. "
+                f"To get started, please share: {readable}."
+            ),
+            IntentName.check_balance: (
+                "I can help you check your balance. "
+                f"Please provide: {readable}."
+            ),
+            IntentName.transfer_money: (
+                "I can help with your transfer. "
+                f"Please provide: {readable}."
+            ),
+        }
+
+        base = empathetic_templates.get(intent)
+        if not base:
+            base = (
+                f"I can help with {human_intent}. To proceed, please provide: {readable}."
+            )
+        return base + " Thank you!"
 
     def _final_response(self, plan: Plan, result: ExecutionResult) -> str:
         if not result.success:

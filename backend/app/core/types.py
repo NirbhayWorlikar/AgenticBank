@@ -24,6 +24,18 @@ INTENT_TO_REQUIRED_SLOTS: Dict[IntentName, List[str]] = {
 }
 
 
+class SessionState(str, Enum):
+    idle = "idle"
+    awaiting_clarification = "awaiting_clarification"
+    executing = "executing"
+    completed = "completed"
+
+
+class ReviewType(str, Enum):
+    plan = "plan"
+    execution = "execution"
+
+
 class Message(BaseModel):
     role: Literal[
         "user",
@@ -48,6 +60,7 @@ class Review(BaseModel):
     approved: bool
     issues: List[str] = Field(default_factory=list)
     score: float = 0.0
+    review_type: ReviewType = ReviewType.plan
 
 
 class ExecutionResult(BaseModel):
@@ -74,4 +87,5 @@ class ChatResponse(BaseModel):
     messages: List[Message]
     awaiting_user: bool = False
     missing_slots: List[str] = Field(default_factory=list)
-    intent: Optional[IntentName] = None 
+    intent: Optional[IntentName] = None
+    state: Optional[SessionState] = None 

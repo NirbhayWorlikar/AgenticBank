@@ -1,0 +1,231 @@
+Proof of Concept (PoC) Idea Template
+====================================
+
+1. Title of the PoC
+-------------------
+"AgenticChatbot: AI-Powered r"
+
+2. Problem Statement
+--------------------
+What problem are you trying to solve?
+
+- Describe the pain point or inefficiency.
+- Identify who is affected (users, teams, systems).
+
+Example: "Manual social media content creation is time-consuming and inconsistent. Small businesses lack tools to automate high-quality, brand-aligned posts."
+
+3. Proposed Solution
+--------------------
+How does your idea solve the problem?
+
+- Brief overview of the concept.
+- Highlight the role of AI or automation.
+
+Example: "Use LangChain with GPT-4.5 to generate branded content and automate publishing via n8n workflows integrated with social media APIs."
+
+4. Key Features / Capabilities
+------------------------------
+List the core functionalities your PoC should demonstrate.
+
+- AI model usage (e.g., GPT-4.5, Gemini 2.0)
+- Frameworks/tools (e.g., LangChain, Hugging Face, Pinecone)
+- Automation logic (e.g., n8n workflows)
+
+Example:
+- Prompt-based content generation
+- Image generation
+- Auto-scheduling and publishing
+- Analytics dashboard
+
+5. Tech Stack / Tools
+---------------------
+Specify preferred or required technologies.
+
+Component        | Tool/Framework
+-----------------|------------------------
+LLM              | GPT-4.5 / Gemini 2.0
+Workflow Engine  | n8n
+Vector DB        | Pinecone / FAISS
+Frontend         | React / Next.js
+Backend          | Node.js / Flask
+Data Visualization | Tableau
+
+6. Expected Outcomes
+--------------------
+What should the MVP demonstrate?
+
+- Functional prototype with key features
+- Measurable improvements or validations
+- User feedback or performance metrics
+
+Example: "Generate and publish 10 unique posts/week with 80% brand consistency and 50% time savings compared to manual workflows."
+
+7. Research & Exploration Tasks for AI
+--------------------------------------
+What should the AI assistant explore or build next?
+
+- Identify best LLM for the task
+- Design prompt templates
+- Build LangChain chains
+- Set up n8n workflows
+- Create mock UI for MVP
+
+8. Constraints / Assumptions
+----------------------------
+Any limitations or assumptions to keep in mind?
+
+- Budget, data availability, API limits
+- Assumed user behavior or system access
+
+9. Next Steps
+-------------
+What should be done immediately after framing the idea?
+
+- Research feasibility
+- Build prototype architecture
+- Assign tasks to AI agents or developers
+
+
+
+IDEA:
+
+ok now help me fill this template with an idea of agentic chatbot using langgraph and fastapi. 
+
+I want to build a basic agentic ai for bank, there will be a planner, reviewer, executioner and response_generator
+
+Planner (generate execution plan for customer request):
+-take raw input (customer queries)
+-identify if any banking request in the raw input
+-call create_plan_with_llm() from agent_initializer
+-create_plan_with_llm() should identify intents from the set of predefined intents and check if any slot is missed in the identified intent. if missed then should interrupt the workflow and ask clarifying questions untill all slots for the identified intent are fulfilled.
+-Displays plan in code block format 
+-log all major and minor steps and update into centralized chat_session_log and stored in the logfile with a unique identifier.
+- Should output JSON as draft of the detailed plan as input query for execution agent and set review_type as plan 
+
+Reviewer (review plan for safety, compliance, quality):
+-check review_type: plan or execution
+-call review_plan_with_llm() function for review_type: plan
+-call review_execute_with_llm() funtion for review_type: execution
+-AI reviewer evaluates plan against 4 criteria:
+1. Relevance - does plan addresses the customer's request ?
+2. Completeness - are all aspects covered ?
+3. Safety - are proper security measures included ?
+4. Quality - is it well-structured and actionable?
+- log all major steps and update into centralized chat_session_log
+- should outputs JSON response with score (1-10) and detailed feedback
+
+Executioner/Supervisor
+- Understand what is the task and call related agents and tools to perform the mentioned task
+- Log every minor and major steps and update into centralized chat_session_log
+- output: detailed JSON with information like user_message, action performed, time taken, error_message, etc
+
+Response_Generator
+- this will check for the JSON and based on it will curate a response which will be suitable the customers request.
+-Log every steps and update into centralized chat_session_log
+- output: response JSON 
+
+workflow sequence steps: 
+1. input: user_input
+
+2. planner: validate_input (check for any bank query using llm) 
+2.1. planner: identify_intent (identify and set intent using llm)
+2.2. planner: check slots (check if slots are fulfilled)
+2.2.1. planner: slot_not_fulfilled (if slots not fulfilled, ask clarifying questions using llm goto step fallback) 
+2.2.2. planner: slot_fulfilled (all slots are fullfilled, generate a detailed plan for executioner using llm, set review_type: plan)
+
+3. reviewer: check_review_type (check for review type: plan or execute)
+3.1. reviewer: review_type_plan (call call review_plan_with_llm() evaluates plan against 4 criteria and check plan score using llm)
+3.1.1. reviewer: plan_score_positive (generate response JSON goto step executor)
+3.1.2. reviewer: plan_score_negative (plan score negative go to step fallback)
+3.2. reviewer: review_type_execute (call call review_execute_with_llm() evaluates execution summary against 4 criteria and check execute score using llm )
+3.2.1. reviewer: execute_score_positive (generate response JSON)
+3.2.2. reviewer: execute_score_negative (generate response JSON go to step fallback)
+
+4. executioner: agent_check (check if agent is available)
+4.1. executioner: agent_green (agent is available, perform the task and return response)
+4.2. executioner: agent_red (agent not available, goto step fallback)
+4.3. executioner: response (generate detailed response JSON) 
+
+5. output: check_fallback (check if fallback is set to true)
+5.1 output: fallback (send a fallback response)
+5.2 output: positive (summarize the response with llm)
+
+
+Now with respect to the template please ask any clarifying questions 
+
+
+
+
+1. Title of the PoC
+
+•  Do you have a catchy working name in mind? Something like “BankAgentor” or “IntentFlow for Banking” or shall we brainstorm a few options?
+-> How about "Agentic IntentFlow for Banking"
+
+2. Problem Statement
+
+•  Who will use this chatbot? (Retail customers, call-center agents, branch staff?)
+-> Retail customers 
+•  What’s the biggest current bottleneck or pain point? (E.g., slow ticket resolution, high error rates in manual triage, compliance lapses.)
+-> current chatbot is inaccurate at classifying intents or fulfilling the user queries
+•  Do you have any rough data on volume/time/cost impact today?
+-> 20000 user queries / requests per day are triaged
+
+3. Proposed Solution
+
+•  Beyond LangGraph/AWS/FastAPI, will this hook into your core banking system or CRM?
+•  Any authentication or security flows needed up front?
+•  Do you envision a web widget, mobile chat interface, or integration within an existing app?
+
+4. Key Features / Capabilities
+
+•  Which banking intents will you support initially? (Balance inquiry, fund transfer, statement request, dispute raise, etc.)
+•  Can you list the required slots for each intent? (Account number, beneficiary ID, date range, amount, reason, etc.)
+•  Are there external tools/agents (e.g., fraud‐detection API, transaction‐processor) the executioner must call?
+
+5. Tech Stack / Tools
+
+•  On AWS, which services? (Lambda, API Gateway, DynamoDB/S3 for logs, SageMaker endpoints…)
+•  Do you have an existing vector-store or would you spin up Pinecone/FAISS?
+•  Frontend: is React/Next.js acceptable or is there another UI framework in use?
+
+6. Expected Outcomes
+
+•  What success metrics matter? (Mean time to resolution, plan-approval rate, compliance score, fallback-rate, CSAT…)
+•  Do you have target thresholds? (e.g., “80% of plans approved first-pass,” “<5% fallback rate.”)
+
+7. Research & Exploration Tasks for AI
+
+•  Beyond chain design and prompt engineering, any PoC experiments? (Latency testing, multi-intent disambiguation, slot-filling dialogues…)
+•  Should we prototype logging visualization or error-reporting dashboards?
+
+8. Constraints / Assumptions
+
+•  Any budget cap for AWS usage or LLM tokens?
+•  Data privacy/regulatory constraints? (Encrypt logs at rest, no PII in vector DB…)
+•  API rate limits or SLAs we must honor?
+
+9. Next Steps
+
+•  Who will own which piece? (Planner, reviewer, executioner, UI…)
+•  What’s your target PoC timeline? (1 week for prototype, 2 weeks for initial user testing…)
+
+
+
+1.	Target Audience or User Personas
+->	This chatbot intended for retail banking customers.
+
+2.	Predefined Banking Intents & Slots
+->	Generate few sample intents and required slots (e.g., card replace, report_fraud, open account, check account balance, transfer money, raise complaint)
+-> yes, 5 sample intents we should include in the PoC.
+
+3.	LLM Model
+->	The PoC should uses Anthropic Claude Sonnet v3.5 via Bedrock using langgraph-aws for LLM processing
+
+4.	Logging
+->	Logging should be handled via internal logging service just local for the PoC, but all the logs should be handled chat session wise and should be stored locally in a central folder.
+
+5.	Frontend Requirement
+->	I will require a basic chatbot UI for this PoC using (React)
+
+6.	PoC Scope and Timeframe
+->	The PoC should demonstrate all 4 agents (planner, reviewer, executioner, response_generator) end-to-end with 1–2 example use cases

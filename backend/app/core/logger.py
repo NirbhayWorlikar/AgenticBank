@@ -39,6 +39,9 @@ class SessionLogger:
     def assistant_message(self, message: str) -> None:
         self.write("assistant_message", {"message": message})
 
+    def state_transition(self, prev: str, new: str) -> None:
+        self.write("state_transition", {"from": prev, "to": new})
+
     def info(self, message: str, **kwargs: Any) -> None:
         payload = {"message": message, **kwargs}
         self.write("info", payload) 
