@@ -12,7 +12,7 @@ def detect_intent(text: str) -> Optional[IntentName]:
     # Card replacement: match lost/stolen/damaged + card, or replace + card
     if re.search(r"(lost|stolen|damaged)[^\n]{0,40}\bcard\b", t) or re.search(
         r"\breplace[^\n]{0,40}\b(card|debit|credit)\b", t
-    ):
+    ) or (re.search(r"\b(lost|stolen|damaged)\b", t) and re.search(r"\b(card|debit|credit)\b", t)):
         return IntentName.card_replace
 
     # Fraud report
@@ -28,7 +28,7 @@ def detect_intent(text: str) -> Optional[IntentName]:
         return IntentName.check_balance
 
     # Transfer money
-    if re.search(r"\b(transfer|send|pay)\b[^\n]{0,30}\b(money|amount|\$|to)\b", t):
+    if re.search(r"\b(transfer|send|pay)\b[^\n]{0,30}\b(money|amount|\$|to|from|[0-9])\b", t):
         return IntentName.transfer_money
 
     return None
@@ -45,10 +45,15 @@ def extract_slots(intent: Optional[IntentName], text: str) -> Tuple[Dict[str, Op
     t = text
 
     if intent == IntentName.card_replace:
-        if re.search(r"\bdebit\b", t, re.I):
-            slots["card_type"] = "debit"
-        if re.search(r"\bcredit\b", t, re.I):
-            slots["card_type"] = "credit"
+        # Only set when explicitly stated and not just as part of 'credit card'
+        m = re.search(r"(card type|type of card)[:\s]*(debit|credit)", t, re.I)
+        if not m:
+            m = re.search(r"\b(debit|credit)\b(?!\s*card)", t, re.I)
+        if m:
+            slots["card_type"] = m.group(2) if m.lastindex and m.lastindex >= 2 else m.group(1)
+            if slots["card_type"] not in ("debit", "credit"):
+                slots["card_type"] = None
+
         m = re.search(r"address is ([^.\n]+)", t, re.I)
         if m:
             slots["delivery_address"] = m.group(1).strip()
@@ -95,6 +100,11 @@ def extract_slots(intent: Optional[IntentName], text: str) -> Tuple[Dict[str, Op
         m = re.search(r"amount[:\s]*\$?([0-9]+(?:\.[0-9]{1,2})?)", t, re.I)
         if m:
             slots["amount"] = m.group(1)
+        # Fallback: handle 'transfer 10' or 'send 10'
+        if not slots.get("amount"):
+            m = re.search(r"\b(?:transfer|send|pay)\s+\$?([0-9]+(?:\.[0-9]{1,2})?)\b", t, re.I)
+            if m:
+                slots["amount"] = m.group(1)
 
     missing = [k for k, v in slots.items() if not v]
     return slots, missing 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import uuid
 from dataclasses import dataclass
@@ -9,6 +10,8 @@ from app.agents.executioner import Executioner
 from app.agents.planner import Planner
 from app.agents.responder import Responder
 from app.agents.reviewer import Reviewer
+from app.agents_llm.planner_llm import LLMPlanner
+from app.agents_llm.reviewer_llm import LLMReviewer
 from app.core.logger import SessionLogger
 from app.core.types import (
     ChatResponse,
@@ -18,6 +21,10 @@ from app.core.types import (
     Plan,
     SessionState,
 )
+from app.core.nlu import extract_slots
+
+
+USE_LLM = os.getenv("USE_LLM", "false").lower() in {"1", "true", "yes"}
 
 
 @dataclass
@@ -55,7 +62,6 @@ class AgentPipeline:
         return bool(re.search(r"\b(new (request|issue|intent)|different (request|issue))\b", text, re.I))
 
     def _merge_with_memory(self, existing: Plan, incoming: Plan) -> Plan:
-        # Lock intent to existing unless user explicitly resets via commands
         intent = existing.intent or incoming.intent
         if not intent:
             return incoming
@@ -73,6 +79,11 @@ class AgentPipeline:
         missing = [k for k in required if not merged_slots.get(k)]
         return Plan(intent=intent, slots=merged_slots, missing_slots=missing, rationale=incoming.rationale)
 
+    def _get_agents(self, logger: SessionLogger):
+        if USE_LLM:
+            return LLMPlanner(logger), LLMReviewer(logger), Executioner(logger), Responder(logger)
+        return Planner(logger), Reviewer(logger), Executioner(logger), Responder(logger)
+
     def process(self, user_message: str, session_id: str | None = None) -> ChatResponse:
         sid = session_id or str(uuid.uuid4())
         logger = self._get_logger(sid)
@@ -80,7 +91,6 @@ class AgentPipeline:
 
         mem = self._get_memory(sid)
 
-        # Commands: cancel/reset or explicitly start new request
         if self._is_cancel(user_message):
             self._memory[sid] = SessionMemory(state=SessionState.idle, plan=None)
             logger.assistant_message("Okay, I’ve reset this conversation. How can I help next?")
@@ -100,22 +110,20 @@ class AgentPipeline:
             self._memory[sid] = SessionMemory(state=SessionState.idle, plan=None)
             logger.info("New request command recognized; state reset")
 
-        planner = Planner(logger)
-        reviewer = Reviewer(logger)
-        executioner = Executioner(logger)
-        responder = Responder(logger)
+        planner, reviewer, executioner, responder = self._get_agents(logger)
 
         if mem.state in (SessionState.awaiting_clarification,) and mem.plan:
-            # Merge new info into existing plan
             incoming_plan: Plan = planner.run(user_message)
+            # If user replied with only slot values (no intent), extract based on previous intent
+            if not incoming_plan.intent and mem.plan.intent:
+                slots, missing = extract_slots(mem.plan.intent, user_message)
+                incoming_plan = Plan(intent=mem.plan.intent, slots=slots, missing_slots=missing, rationale=incoming_plan.rationale)
             plan: Plan = self._merge_with_memory(mem.plan, incoming_plan)
         else:
-            # Fresh detection
             plan = planner.run(user_message)
 
         plan_review = reviewer.review_plan(plan)
 
-        # Decide next step based on completeness
         if plan.intent and plan.missing_slots:
             self._set_state(logger, mem, SessionState.awaiting_clarification)
             mem.plan = plan
@@ -130,20 +138,16 @@ class AgentPipeline:
                 state=mem.state,
             )
 
-        # Execute when plan is complete
         self._set_state(logger, mem, SessionState.executing)
         exec_result = executioner.run(plan)
 
-        # Review execution result
         execution_review = reviewer.review_execution(plan, exec_result)
 
         assistant_msg = responder.run(plan, exec_result)
         logger.assistant_message(assistant_msg.content)
 
-        # Mark completed and clear plan in memory to accept new requests next
         self._set_state(logger, mem, SessionState.completed)
         mem.plan = None
-        # Return to idle for follow-up messages
         self._set_state(logger, mem, SessionState.idle)
 
         return ChatResponse(
