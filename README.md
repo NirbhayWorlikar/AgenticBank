@@ -80,7 +80,49 @@ curl -s http://127.0.0.1:8000/health
 
 ### Logging
 - Location: `AgenticBank/backend/logs/session_<SESSION_ID>.jsonl`
-- Events: user_message, assistant_message, agent_step, state_transition, info
+- Created: on the first message for a given `session_id`
+- Event types:
+  - `user_message`: raw text from user
+  - `assistant_message`: message shown to user
+  - `agent_step`: structured input/output for each agent step (planner/reviewer/executioner/responder)
+  - `state_transition`: pipeline state changes
+  - `info`: miscellaneous informational events
+- Record schema (per line):
+```
+{
+  "ts": "2025-01-01T12:34:56Z",
+  "session_id": "<uuid-or-supplied>",
+  "event": "user_message|assistant_message|agent_step|state_transition|info",
+  "payload": { /* event-specific data */ }
+}
+```
+- `agent_step` payload:
+```
+{
+  "name": "planner|reviewer|executioner|responder|...",
+  "input": { /* inputs to the step, e.g., user_message or plan */ },
+  "output": { /* outputs from the step, e.g., plan/review/result/message */ }
+}
+```
+- Example lines:
+```
+{"ts":"2025-01-01T12:00:00Z","session_id":"abc","event":"user_message","payload":{"message":"Please replace my card"}}
+{"ts":"2025-01-01T12:00:00Z","session_id":"abc","event":"agent_step","payload":{"name":"planner","input":{"user_message":"Please replace my card"},"output":{"intent":"card_replace","slots":{},"missing_slots":["card_type","delivery_address","reason"],"rationale":"Derived via rule-based NLU for PoC."}}}
+{"ts":"2025-01-01T12:00:01Z","session_id":"abc","event":"assistant_message","payload":{"message":"Here's the current plan I generated..."}}
+```
+- Inspect logs:
+```
+# Tail latest
+tail -f AgenticBank/backend/logs/session_*.jsonl
+
+# Filter a single session
+sid=<your-session-id>
+grep "\"session_id\":\"$sid\"" AgenticBank/backend/logs/session_*.jsonl
+
+# Pretty-print agent steps
+jq 'select(.event=="agent_step")' AgenticBank/backend/logs/session_$sid.jsonl
+```
+- Configuration: by default logs are written to `backend/logs/`. Rotation/retention is not implemented; manage the directory manually for now.
 
 ---
 

@@ -23,11 +23,11 @@ class LLMPlanner:
 
     def run(self, user_message: str) -> Plan:
         prompt = PLANNER_PROMPT + f"\nUser: {user_message}\nJSON:"
-        raw = call_llm_json(self.llm, prompt)
+        raw = call_llm_json(prompt, self.llm)
         intent: Optional[IntentName] = None
         slots: Dict[str, Optional[str]] = {}
         try:
-            data = json.loads(raw)
+            data = raw if isinstance(raw, dict) else json.loads(str(raw))
             if isinstance(data.get("intent"), str) and data["intent"] in [i.value for i in IntentName]:
                 intent = IntentName(data["intent"]) 
             slots = data.get("slots", {}) or {}

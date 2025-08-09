@@ -1,0 +1,2 @@
+{"ts": "2025-08-09T10:04:02Z", "session_id": "4afd94f1-21af-41dd-bcb9-3d1905c7fd2c", "event": "user_message", "payload": {"message": "replace my card"}}
+{"ts": "2025-08-09T10:04:02Z", "session_id": "4afd94f1-21af-41dd-bcb9-3d1905c7fd2c", "event": "assistant_message", "payload": {"message": "FB: Plan review failed or plan score too low."}}

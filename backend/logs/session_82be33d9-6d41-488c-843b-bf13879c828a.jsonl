@@ -1,0 +1,3 @@
+{"ts": "2025-08-09T09:54:33Z", "session_id": "82be33d9-6d41-488c-843b-bf13879c828a", "event": "user_message", "payload": {"message": "replace my card"}}
+{"ts": "2025-08-09T09:54:33Z", "session_id": "82be33d9-6d41-488c-843b-bf13879c828a", "event": "state_transition", "payload": {"from": "idle", "to": "executing"}}
+{"ts": "2025-08-09T09:54:33Z", "session_id": "82be33d9-6d41-488c-843b-bf13879c828a", "event": "assistant_message", "payload": {"message": "FB: Execution failed or agent/tool unavailable."}}

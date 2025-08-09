@@ -59,7 +59,7 @@ class Plan(BaseModel):
 class Review(BaseModel):
     approved: bool
     issues: List[str] = Field(default_factory=list)
-    score: float = 0.0
+    score: float = 0.0  # 1-10
     review_type: ReviewType = ReviewType.plan
 
 
@@ -67,6 +67,10 @@ class ExecutionResult(BaseModel):
     success: bool
     data: Dict[str, Any] = Field(default_factory=dict)
     error: Optional[str] = None
+    # Extra metadata
+    user_message: Optional[str] = None
+    action_name: Optional[str] = None
+    elapsed_ms: Optional[int] = None
 
 
 class AgentStep(BaseModel):
