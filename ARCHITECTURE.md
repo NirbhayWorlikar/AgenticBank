@@ -4,7 +4,7 @@ This document describes the end-to-end workflow, architecture, and low-level des
 
 ---
 
-### High-Level Overview
+### High-Level Overview .
 - Multi-agent pipeline: Planner → Reviewer → Executioner → Reviewer → Responder
 - Two execution modes:
   - Rule-based (default): deterministic, regex-driven NLU and mock execution
