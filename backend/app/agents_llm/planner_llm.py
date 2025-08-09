@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 from app.core.logger import SessionLogger
 from app.core.types import INTENT_TO_REQUIRED_SLOTS, IntentName, Plan
 from app.llm.bedrock import call_llm_json, get_bedrock_client
+from app.core.nlu import detect_intent, extract_slots
 
 
 PLANNER_PROMPT = (
@@ -32,7 +33,7 @@ class LLMPlanner:
                 intent = IntentName(data["intent"]) 
             slots = data.get("slots", {}) or {}
         except Exception:
-            # fall back to no-intent plan
+            # fall through to rule-based fallback
             pass
 
         missing: List[str] = []
@@ -41,7 +42,14 @@ class LLMPlanner:
             # keep only required keys
             slots = {k: (slots.get(k) if slots.get(k) else None) for k in required}
             missing = [k for k in required if not slots.get(k)]
+        else:
+            # Fallback to rule-based NLU when LLM is uncertain
+            rb_intent = detect_intent(user_message)
+            rb_slots, rb_missing = extract_slots(rb_intent, user_message)
+            intent = rb_intent
+            slots = rb_slots
+            missing = rb_missing
 
-        plan = Plan(intent=intent, slots=slots, missing_slots=missing, rationale="LLM extracted plan")
+        plan = Plan(intent=intent, slots=slots, missing_slots=missing, rationale="LLM extracted plan (with rule-based fallback if needed)")
         self.logger.step("planner_llm", {"user_message": user_message}, plan.model_dump())
         return plan 

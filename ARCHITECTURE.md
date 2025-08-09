@@ -36,9 +36,11 @@ graph TD
   2. Checks for commands: cancel/reset/new request
   3. Runs Planner to detect intent and extract slots
   4. Runs Reviewer (plan) to validate completeness and safety
-  5. If missing slots: prompts user, shows plan in JSON code block, sets `awaiting_clarification`
+     - Exposes `plan_review_score` (1–10) in the API response
+  5. If missing slots: prompts user, sets `awaiting_clarification` (no internal plan shown)
   6. Else executes plan with Executioner and runs Reviewer (execution)
-  7. Generates a final user response via Responder
+     - Exposes `execution_review_score` (1–10) in the API response
+  7. Generates a final user response via Responder (concise, empathetic)
   8. Logs assistant messages, steps, and state transitions throughout
 
 #### Clarification loop and memory merge
@@ -64,6 +66,7 @@ graph TD
 - `Review`: reviewer output with `approved`, `issues`, `score` (1–10), `review_type`
 - `ExecutionResult`: execution output with `success`, `data`, `error`, metadata `action_name`, `elapsed_ms`
 - `ChatRequest` / `ChatResponse`: API DTOs
+- `ChatResponse`: adds optional `plan_review_score`, `execution_review_score` (both 1–10)
 
 #### `app/core/logger.py`
 - `SessionLogger(session_id, base_dir=None)`
@@ -253,3 +256,10 @@ return ChatResponse(final_message)
 ### Notes
 - This PoC avoids external banking APIs; execution is simulated
 - English-only, and local file-based logging by design per PoC constraints 
+
+---
+
+### API Contract Notes
+- During clarification (missing slots), `plan_review_score` is set; `execution_review_score` is null.
+- After successful execution, both review scores are set.
+- Scores reflect either rule-based or LLM reviewer results normalized to 1–10. 

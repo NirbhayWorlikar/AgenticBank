@@ -221,7 +221,9 @@ ChatResponse
   "awaiting_user": true|false,
   "missing_slots": ["card_type", "reason"],
   "intent": "card_replace|report_fraud|open_account|check_balance|transfer_money|null",
-  "state": "idle|awaiting_clarification|executing|completed"
+  "state": "idle|awaiting_clarification|executing|completed",
+  "plan_review_score": 8.5,            // present after plan review (also during clarification)
+  "execution_review_score": 9.0        // present after execution review (null during clarification)
 }
 ```
 

@@ -14,58 +14,38 @@ class Responder:
         readable = ", ".join(missing_slots)
         human_intent = intent.value.replace("_", " ")
 
-        empathetic_templates = {
-            IntentName.card_replace: (
-                "I'm sorry to hear about your card. I'll help you get a replacement right away. "
-                f"To proceed, could you please share: {readable}?"
-            ),
-            IntentName.report_fraud: (
-                "That sounds stressful, and your security matters. I'll help you report this. "
-                f"Please provide: {readable}."
-            ),
-            IntentName.open_account: (
-                "Happy to help you open an account. We'll make this quick. "
-                f"To get started, please share: {readable}."
-            ),
-            IntentName.check_balance: (
-                "I can help you check your balance. "
-                f"Please provide: {readable}."
-            ),
-            IntentName.transfer_money: (
-                "I can help with your transfer. "
-                f"Please provide: {readable}."
-            ),
+        templates = {
+            IntentName.card_replace: f"I’m sorry about your card. To proceed, please share: {readable}.",
+            IntentName.report_fraud: f"I understand your concern. To report this, please provide: {readable}.",
+            IntentName.open_account: f"Happy to help you open an account. Please share: {readable}.",
+            IntentName.check_balance: f"I can help check your balance. Please provide: {readable}.",
+            IntentName.transfer_money: f"I can help with the transfer. Please provide: {readable}.",
         }
 
-        base = empathetic_templates.get(intent)
-        if not base:
-            base = (
-                f"I can help with {human_intent}. To proceed, please provide: {readable}."
-            )
-        return base + " Thank you!"
+        return templates.get(intent, f"To help with {human_intent}, please provide: {readable}.")
 
     def _final_response(self, plan: Plan, result: ExecutionResult) -> str:
         if not result.success:
-            return f"I couldn't complete the request: {result.error}"
+            return f"Sorry, I couldn’t complete that: {result.error}"
 
         if plan.intent == IntentName.card_replace:
             return (
-                "Your card replacement request is submitted. "
+                "Your card replacement is submitted. "
                 f"Ticket {result.data.get('ticket_id')} — {plan.slots.get('card_type')} card will be sent to "
                 f"{plan.slots.get('delivery_address')}."
             )
         if plan.intent == IntentName.report_fraud:
             return (
-                "Thanks. We've opened a fraud investigation. "
-                f"Case {result.data.get('case_id')} — we'll update you within 2 business days."
+                "We’ve opened a fraud case. "
+                f"Case {result.data.get('case_id')} — we’ll update you soon."
             )
         if plan.intent == IntentName.open_account:
             return (
-                "Your account application is created. "
-                f"Application {result.data.get('application_id')} for a {plan.slots.get('account_type')} account."
+                "Your application is created. "
+                f"ID {result.data.get('application_id')} for a {plan.slots.get('account_type')} account."
             )
         if plan.intent == IntentName.check_balance:
-            return f"Your account balance is ${result.data.get('balance')}"
+            return f"Your balance is ${result.data.get('balance')}"
         if plan.intent == IntentName.transfer_money:
             return (
                 f"Transfer initiated (ID {result.data.get('transfer_id')}). "

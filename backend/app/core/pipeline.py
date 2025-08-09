@@ -122,6 +122,8 @@ class AgentPipeline:
                 missing_slots=[],
                 intent=None,
                 state=SessionState.idle,
+                plan_review_score=None,
+                execution_review_score=None,
             )
 
         if self._is_new_request(user_message):
@@ -141,6 +143,8 @@ class AgentPipeline:
                 missing_slots=[],
                 intent=None,
                 state=SessionState.idle,
+                plan_review_score=None,
+                execution_review_score=None,
             )
 
         # Clarification loop
@@ -179,6 +183,8 @@ class AgentPipeline:
                 missing_slots=plan.missing_slots,
                 intent=plan.intent,
                 state=mem.state,
+                plan_review_score=plan_score,
+                execution_review_score=None,
             )
 
         self._set_state(logger, mem, SessionState.executing)
@@ -207,6 +213,8 @@ class AgentPipeline:
                 missing_slots=[],
                 intent=plan.intent,
                 state=mem.state,
+                plan_review_score=plan_score,
+                execution_review_score=exec_score,
             )
         else:
             assistant_msg = responder.run(plan, exec_result)
@@ -221,4 +229,6 @@ class AgentPipeline:
                 missing_slots=[],
                 intent=plan.intent,
                 state=mem.state,
+                plan_review_score=plan_score,
+                execution_review_score=exec_score,
             ) 

@@ -1,3 +1,0 @@
-{"ts": "2025-08-09T10:04:01Z", "session_id": "28b09940-1277-47a5-8bdc-06c01f510f90", "event": "user_message", "payload": {"message": "I lost my card"}}
-{"ts": "2025-08-09T10:04:02Z", "session_id": "28b09940-1277-47a5-8bdc-06c01f510f90", "event": "agent_step", "payload": {"name": "planner_llm", "input": {"user_message": "I lost my card"}, "output": {"intent": null, "slots": {}, "missing_slots": [], "rationale": "LLM extracted plan"}}}
-{"ts": "2025-08-09T10:04:02Z", "session_id": "28b09940-1277-47a5-8bdc-06c01f510f90", "event": "assistant_message", "payload": {"message": "Okay."}}

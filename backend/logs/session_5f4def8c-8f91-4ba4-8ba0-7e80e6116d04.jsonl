@@ -1,2 +1,0 @@
-{"ts": "2025-08-09T10:04:02Z", "session_id": "5f4def8c-8f91-4ba4-8ba0-7e80e6116d04", "event": "user_message", "payload": {"message": "gibberish not a bank query"}}
-{"ts": "2025-08-09T10:04:02Z", "session_id": "5f4def8c-8f91-4ba4-8ba0-7e80e6116d04", "event": "assistant_message", "payload": {"message": "FB: Could not detect a valid banking intent."}}

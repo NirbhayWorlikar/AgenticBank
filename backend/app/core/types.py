@@ -92,4 +92,7 @@ class ChatResponse(BaseModel):
     awaiting_user: bool = False
     missing_slots: List[str] = Field(default_factory=list)
     intent: Optional[IntentName] = None
-    state: Optional[SessionState] = None 
+    state: Optional[SessionState] = None
+    # Optional reviewer scores
+    plan_review_score: Optional[float] = None
+    execution_review_score: Optional[float] = None 
