@@ -161,12 +161,7 @@ class AgentPipeline:
         if USE_LLM and (not plan.intent):
             return do_fallback("Could not detect a valid banking intent.")
 
-        plan_review = reviewer.review_plan(plan)
-        # Normalize review across schemas and scales
-        plan_approved, plan_score = self._normalize_review(plan_review)
-        if USE_LLM and (not plan_approved or plan_score < 5.0):
-            return do_fallback("Plan review failed or plan score too low.")
-
+        # LLM: Check for missing slots
         if plan.intent and plan.missing_slots:
             self._set_state(logger, mem, SessionState.awaiting_clarification)
             mem.plan = plan
@@ -183,9 +178,16 @@ class AgentPipeline:
                 missing_slots=plan.missing_slots,
                 intent=plan.intent,
                 state=mem.state,
-                plan_review_score=plan_score,
+                plan_review_score=None, # No review score yet since we ask for clarification
                 execution_review_score=None,
             )
+        
+        # Plan review only for complete plans
+        plan_review = reviewer.review_plan(plan)
+        # Normalize review across schemas and scales
+        plan_approved, plan_score = self._normalize_review(plan_review)
+        if USE_LLM and (not plan_approved or plan_score < 5.0):
+            return do_fallback("Plan review failed or plan score too low.")
 
         self._set_state(logger, mem, SessionState.executing)
         if USE_LLM:
